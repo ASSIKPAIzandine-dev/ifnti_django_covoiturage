@@ -1,1 +1,20 @@
 from django.db import models  # noqa: F401
+class Trajet(models.Model):
+    """une entreprise susceptible d'accueillir un stagiaire"""
+
+    conducteur = models.CharField(unique=True)
+    ville_depart = models.CharField(max_length=80)
+    ville_arrivee = models.CharField(max_length=80)
+    
+    date_depart = models.DateField()
+    heure_depart = models.CharField()
+    places = models.BigIntegerField(max_length=80)
+    prix_place = models.BigIntegerField(max_length=80)
+    
+    def __str__(self):
+        return f"{self.ville_depart}-({self.ville_arrivee}) , le {self.date_depart} à {self.heure_depart}"
+    
+    
+   
+
+   
