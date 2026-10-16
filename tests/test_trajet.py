@@ -38,3 +38,7 @@ def test_trajet_propose_au_moins_une_place():
             print("PASSED .....")
     else :
             print("FAILED.....")
+
+def test_affichage_trajet():
+    
+      print( f"{Trajet.ville_depart}-({Trajet.ville_arrivee}) , le {Trajet.date_depart} à {Trajet.heure_depart}" )

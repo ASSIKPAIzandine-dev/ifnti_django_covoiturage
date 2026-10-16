@@ -1,6 +1,5 @@
 from django.db import models  # noqa: F401
 class Trajet(models.Model):
-    """une entreprise susceptible d'accueillir un stagiaire"""
 
     conducteur = models.CharField(unique=True)
     ville_depart = models.CharField(max_length=80)
