@@ -1,4 +1,5 @@
 from covoiturage.models import Trajet
+import pytest
 
 
 def test_creation_d_un_trajet(db):
@@ -22,5 +23,18 @@ def test_creation_d_un_trajet(db):
     assert trajet.prix_place
 
 
-# def test_trajet_propose_au_une_place():
+def test_trajet_propose_au_moins_une_place():
+    trajet = Trajet.objects.create(
+        conducteur="assikpa",
+        ville_depart="sokodé",
+        ville_arrivee="kara",
+        date_depart = "2026-10-23",
+        heure_depart = "8:00",
+        places = 0,
+        prix_place =5000
+    )
     
+    if(pytest.raises(Exception)):
+            print("PASSED .....")
+    else :
+            print("FAILED.....")
