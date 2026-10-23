@@ -13,7 +13,4 @@ class Trajet(models.Model):
     def __str__(self):
         return f"{self.ville_depart}-({self.ville_arrivee}) , le {self.date_depart} à {self.heure_depart}"
     
-    
-   
 
-   

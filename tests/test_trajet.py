@@ -1,6 +1,7 @@
 from covoiturage.models import Trajet
-from covoiturage.models import Reservation
+from covoiturage.reservation import Reservation
 import pytest
+from django.core.exceptions import ValidationError
 
 
 def test_creation_d_un_trajet(db):
@@ -25,43 +26,48 @@ def test_creation_d_un_trajet(db):
 
 
 def test_trajet_propose_au_moins_une_place(db):
-    
+
     trajet = Trajet.objects.create(
         conducteur="assikpa",
         ville_depart="sokodé",
         ville_arrivee="kara",
-        date_depart = "2026-10-23",
-        heure_depart = "8:00",
-        places = 0,
-        prix_place =5000
+        date_depart="2026-10-23",
+        heure_depart="8:00",
+        places=0,
+        prix_place=5000,
     )
-    if(trajet.places<=0):
-        if(pytest.raises(Exception)):
-                print("PASSED .....")
-        else :
-                print("FAILED.....")
+    if trajet.places is not None and trajet.places < 1:
+        raise ValidationError("Un trajet propose au moins une place.")
 
-def test_affichage_trajet(db):
-    
+
+def test_affichage_trajet(self):
+
     trajet = Trajet.objects.create(
-            conducteur="assikpa",
-            ville_depart="sokodé",
-            ville_arrivee="Lomé",
-            date_depart = "2026-11-23",
-            heure_depart = "20:00",
-            places = 5,
-            prix_place =5000
-        )
-    
-    print( f"{trajet.ville_depart}-({trajet.ville_arrivee}) , le {trajet.date_depart} à {trajet.heure_depart}" )
-    
-def test_creation_d_une_reservation(db):
-    
-    reservation = Reservation.objects.create(
-        nom= "kossi",
-        nombre_place_reserver=2
+        conducteur="assikpa",
+        ville_depart="sokodé",
+        ville_arrivee="Lomé",
+        date_depart="2026-11-23",
+        heure_depart="20:00",
+        places=5,
+        prix_place=5000,
     )
-    
-    
-    
-    
+    self.assertEqual(
+        str(trajet),
+    )
+
+
+def test_creation_d_une_reservation(db):
+
+    trajet = Trajet.objects.create(
+        conducteur="KODjo",
+        ville_depart="sokodé",
+        ville_arrivee="kara",
+        date_depart="2026-11-23",
+        heure_depart="09:00",
+        places=2,
+        prix_place=2500,
+    )
+
+    reservation = Reservation.objects.create(
+        nom="kossi", nombre_place_reserver=2, trajet=trajet
+    )
