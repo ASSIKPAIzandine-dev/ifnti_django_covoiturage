@@ -1,4 +1,5 @@
 from covoiturage.models import Trajet
+from covoiturage.models import Reservation
 import pytest
 
 
@@ -23,7 +24,8 @@ def test_creation_d_un_trajet(db):
     assert trajet.prix_place
 
 
-def test_trajet_propose_au_moins_une_place():
+def test_trajet_propose_au_moins_une_place(db):
+    
     trajet = Trajet.objects.create(
         conducteur="assikpa",
         ville_depart="sokodé",
@@ -33,12 +35,33 @@ def test_trajet_propose_au_moins_une_place():
         places = 0,
         prix_place =5000
     )
-    
-    if(pytest.raises(Exception)):
-            print("PASSED .....")
-    else :
-            print("FAILED.....")
+    if(trajet.places<=0):
+        if(pytest.raises(Exception)):
+                print("PASSED .....")
+        else :
+                print("FAILED.....")
 
-def test_affichage_trajet():
+def test_affichage_trajet(db):
     
-      print( f"{Trajet.ville_depart}-({Trajet.ville_arrivee}) , le {Trajet.date_depart} à {Trajet.heure_depart}" )
+    trajet = Trajet.objects.create(
+            conducteur="assikpa",
+            ville_depart="sokodé",
+            ville_arrivee="Lomé",
+            date_depart = "2026-11-23",
+            heure_depart = "20:00",
+            places = 5,
+            prix_place =5000
+        )
+    
+    print( f"{trajet.ville_depart}-({trajet.ville_arrivee}) , le {trajet.date_depart} à {trajet.heure_depart}" )
+    
+def test_creation_d_une_reservation(db):
+    
+    reservation = Reservation.objects.create(
+        nom= "kossi",
+        nombre_place_reserver=2
+    )
+    
+    
+    
+    

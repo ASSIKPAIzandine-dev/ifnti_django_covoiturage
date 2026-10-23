@@ -1,4 +1,4 @@
-from django.db import models  # noqa: F401
+from django.db import models  
 class Trajet(models.Model):
 
     conducteur = models.CharField(unique=True)
