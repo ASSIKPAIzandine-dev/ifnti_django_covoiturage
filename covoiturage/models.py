@@ -6,13 +6,15 @@ class Trajet(models.Model):
     ville_arrivee = models.CharField(max_length=80)
     
     date_depart = models.DateField()
-    heure_depart = models.CharField()
+    heure_depart = models.TimeField()
     places = models.BigIntegerField(max_length=80)
     prix_place = models.BigIntegerField(max_length=80)
     
     def __str__(self):
-        return f"{self.ville_depart}-({self.ville_arrivee}) , le {self.date_depart} à {self.heure_depart}"
-    
+       return (
+              f'{self.ville_depart}:{self.ville_arrivee}: le'
+              f' {self.date_depart}: à {self.heure_depart.strftime('%H:%M')}'
+    )
 
 
 class Reservation(models.Model):
