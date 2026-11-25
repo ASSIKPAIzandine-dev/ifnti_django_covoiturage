@@ -1,121 +1,103 @@
-from covoiturage.models import Trajet, Reservation
+from datetime import date, time
+
 import pytest
 from django.core.exceptions import ValidationError
-from datetime import time
-from django.db.utils import IntegrityError
+from django.db import IntegrityError, transaction
+
+from covoiturage.models import Reservation, Trajet
 
 
-def test_creation_d_un_trajet(db):
-
-    trajet = Trajet.objects.create(
+def donnees(**kw):
+    d = dict(
         conducteur="izandine",
         ville_depart="Sokodé",
         ville_arrivee="Lomé",
-        date_depart="2026-10-17",
-        heure_depart=time(18, 00),
+        date_depart=date(2026, 11, 23),
+        heure_depart=time(12, 10),
         places=4,
         prix_place=3000,
     )
-
-    assert trajet.conducteur
-    assert trajet.ville_depart
-    assert trajet.ville_arrivee
-    assert trajet.date_depart
-    assert trajet.heure_depart
-    assert trajet.places
-    assert trajet.prix_place
+    d.update(kw)
+    return d
 
 
-def test_trajet_propose_au_moins_une_place(db):
+def un_trajet(**kw):
+    return Trajet.objects.create(**donnees(**kw))
 
-    trajet = Trajet.objects.create(
-        conducteur="assikpa",
-        ville_depart="sokodé",
-        ville_arrivee="kara",
-        date_depart="2026-10-23",
-        heure_depart=time(8, 5),
-        places=3,
-        prix_place=5000,
+
+def test_creation_d_un_trajet(db):
+    t = un_trajet()
+    t.refresh_from_db()
+    assert t.pk is not None
+    assert (t.conducteur, t.ville_depart, t.ville_arrivee) == (
+        "izandine",
+        "Sokodé",
+        "Lomé",
     )
-    if trajet.places is not None and trajet.places < 1:
-        raise ValidationError("Un trajet propose au moins une place.")
+    assert t.date_depart == date(2026, 11, 23)
+    assert t.heure_depart == time(12, 10)
+    assert (t.places, t.prix_place) == (4, 3000)
+
+
+@pytest.mark.parametrize("places", [0, -1])
+def test_trajet_sans_place_est_refuse(db, places):
+
+    with pytest.raises(ValidationError):
+        Trajet(**donnees(places=places)).full_clean()
+
+
+def test_trajet_avec_une_seule_place_est_accepte(db):
+    Trajet(**donnees(places=1)).full_clean()
 
 
 def test_affichage_trajet(db):
-
-    trajet = Trajet.objects.create(
-        conducteur="assikpa",
-        ville_depart="Sokodé",
-        ville_arrivee="Lomé",
-        date_depart="2026-11-23",
-        heure_depart=time(12, 10),
-        places=5,
-        prix_place=5000,
+    assert (
+        str(un_trajet(date_depart=date(2026, 11, 23), heure_depart=time(12, 10)))
+        == "Sokodé:Lomé: le 2026-11-23: à 12:10"
     )
-    assert str(trajet) == "Sokodé:Lomé: le 2026-11-23: à 12:10"
 
 
 def test_creation_d_une_reservation(db):
+    t = un_trajet(places=2)
+    r = Reservation.objects.create(trajet=t, nom="Kossi", nombre_place_reserver=2)
+    r.refresh_from_db()
+    assert (r.trajet, r.nom, r.nombre_place_reserver) == (t, "Kossi", 2)
 
-    trajet = Trajet.objects.create(
-        conducteur="KODjo",
-        ville_depart="sokodé",
-        ville_arrivee="kara",
-        date_depart="2026-11-23",
-        heure_depart=time(9, 00),
-        places=2,
-        prix_place=2500,
-    )
-
-    # reservation = Reservation.objects.create(
-    #     nom="kossi", nombre_place_reserver=2, trajet=trajet
-    # )
-
-    reservation = Reservation.objects.create(
-        trajet=trajet, nom="Kossi", nombre_place_reserver=2
-    )
 
 def test_passager_ne_peut_pas_reserver_deux_fois_le_meme_trajet(db):
+    t = un_trajet()
+    Reservation.objects.create(trajet=t, nom="Kossi", nombre_place_reserver=1)
+    with pytest.raises(IntegrityError), transaction.atomic():
+        Reservation.objects.create(trajet=t, nom="Kossi", nombre_place_reserver=2)
+    assert Reservation.objects.count() == 1
 
-    trajet = Trajet.objects.create(
-        conducteur="abass",
-        ville_depart="sokodé",
-        ville_arrivee="kara",
-        date_depart="2026-11-23",
-        heure_depart=time(5, 33),
+
+def test_un_conducteur_peut_proposer_plusieurs_trajets(db):
+
+    Trajet.objects.create(
+        conducteur="Ama",
+        ville_depart="Sokodé",
+        ville_arrivee="Lomé",
+        date_depart=date(2026, 12, 1),
+        heure_depart=time(7, 0),
+        places=4,
+        prix_place=3000,
+    )
+    Trajet.objects.create(
+        conducteur="Ama",
+        ville_depart="Sokodé",
+        ville_arrivee="Kara",
+        date_depart=date(2026, 12, 5),
+        heure_depart=time(8, 0),
         places=3,
-        prix_place=2500,
+        prix_place=2000,
     )
-
-    Reservation.objects.create(trajet=trajet, nom="Kossi", nombre_place_reserver=1)
-    with pytest.raises(IntegrityError):
-        Reservation.objects.create(
-            trajet=trajet, nom="Kossi", nombre_place_reserver=2
-        )
+    assert Trajet.objects.filter(conducteur="Ama").count() == 2
 
 
-def test_passager_peut_reserver_plusieurs_trajets_differents(db):
-    
-        
-    trajet1 = Trajet.objects.create(
-        conducteur="kossi",
-        ville_depart="sokodé",
-        ville_arrivee="kara",
-        date_depart="2026-11-28",
-        heure_depart=time(8, 33),
-        places=3,
-        prix_place=2500,
-    )
-        
-    Reservation.objects.create(
-       trajet=trajet1, nom="Kossi", nombre_place_reserver=1
-    )
-    try:
-        Reservation.objects.create(
-        trajet=trajet1, nom="Kossi", nombre_place_reserver=1
-    )
-    except (ValidationError, IntegrityError):
-        print("Un passager devrait pouvoir réserver sur deux trajets différents")
-        
-        
-    
+def test_deux_passagers_differents_sur_le_meme_trajet(db):
+    t = un_trajet()
+    Reservation.objects.create(trajet=t, nom="Kossi", nombre_place_reserver=1)
+    Reservation.objects.create(trajet=t, nom="Afi", nombre_place_reserver=1)
+    assert t.reservations.count() == 2
+
