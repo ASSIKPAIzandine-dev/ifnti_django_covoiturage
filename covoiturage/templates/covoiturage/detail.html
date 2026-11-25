@@ -1,0 +1,12 @@
+{% extends "covoiturage/base.html" %} {% block titre %} Detail sur un trajet {% endblock %}
+
+{% block contenu %}
+
+<h1>{{ trajet }}</h1>
+<p>Conducteur : {{ trajet.conducteur }}</p>
+<h2>Réservations</h2>
+<ul>
+{% for r in trajet.reservations.all %}<li>{{ r }}</li>{% endfor %}
+</ul>
+
+{% endblock contenu %}

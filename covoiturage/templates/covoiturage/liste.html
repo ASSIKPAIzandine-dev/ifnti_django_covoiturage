@@ -1,0 +1,8 @@
+{% extends "covoiturage/base.html" %} {% block titre %} liste des trajets {% endblock %}
+
+{% block contenu %}
+<h1>Trajets à venir</h1>
+<ul>
+{% for t in trajets %}<li>{{ t }}</li>{% endfor %}
+</ul>
+{% endblock contenu %}

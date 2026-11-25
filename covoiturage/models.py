@@ -33,3 +33,6 @@ class Reservation(models.Model):
                 fields=["trajet", "nom"], name="un_passager_par_trajet"
             ),
         ]
+def __str__(self):
+    mot = "place" if self.nombre_place_reserver == 1 else "places"
+    return f"{self.nom} : {self.nombre_place_reserver} {mot}"
